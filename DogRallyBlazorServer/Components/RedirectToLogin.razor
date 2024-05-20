@@ -1,9 +1,9 @@
 ﻿@inject NavigationManager _navigationManager;
 
 @code {
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        base.OnAfterRender(firstRender);
-        _navigationManager.NavigateTo("Identity/Account/Login", true);
+        await base.OnInitializedAsync();
+        _navigationManager.NavigateTo("Identity/Account/Login");
     }
 }

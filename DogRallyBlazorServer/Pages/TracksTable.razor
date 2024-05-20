@@ -4,17 +4,33 @@
 
 @if (Tracks != null)
 {
-    <ul>
-        @foreach (var track in Tracks)
-        {
-            <li>@track.TrackId - @track.PlaceName - @track.Date - @track.TrackImg </li>
-        }
-    </ul>
-    
+    <Card>
+        <div class="table-responsive">
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    @foreach (var track in Tracks)
+                    {
+                        <tr class="shadow-lg m-1 employee-row mb-5">
+                            <td class="centered-cell"><img class="round-image" width="60" src="@track.TrackImg" /></td>
+                            <td>
+                                <div class="pt-2">
+                                    <div class="track-place-name centered-subdiv">@track.PlaceName</div>
+                                    <div class="track-class centered-subdiv">@track.Class.GetDisplayName()</div>
+                                </div>
+                            </td>
+                            <td class="centered-cell track">@track.CreatorName</td>
+                            <td class="centered-cell track-date">$@track.Date</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </Card>
 }
 
 @code {
     [Inject] private ITrackService TrackService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
 
     private List<Track>? Tracks;
 
