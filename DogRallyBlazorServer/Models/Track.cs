@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Drawing;
+using System.Reflection;
 
 namespace DogRallyBlazorServer.Models
 {
@@ -32,5 +33,16 @@ namespace DogRallyBlazorServer.Models
 
         [Display(Name = "Senior")]
         Seniorklasse
+    }
+    public static class EnumExtensions
+    {
+        public static string GetDisplayName(this Enum enumValue)
+        {
+            return enumValue.GetType()
+              .GetMember(enumValue.ToString())
+              .First()
+              .GetCustomAttribute<DisplayAttribute>()
+              ?.GetName();
+        }
     }
 }
