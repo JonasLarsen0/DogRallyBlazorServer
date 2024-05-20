@@ -1,0 +1,26 @@
+﻿@page "/"
+@using DogRallyBlazorServer.Services;
+@using DogRallyBlazorServer.Models;
+
+@if (Tracks != null)
+{
+    <ul>
+        @foreach (var track in Tracks)
+        {
+            <li>@track.TrackId - @track.PlaceName - @track.Date - @track.TrackImg </li>
+        }
+    </ul>
+    
+}
+
+@code {
+    [Inject] private ITrackService TrackService { get; set; }
+
+    private List<Track>? Tracks;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await TrackService.GetTracks();
+        Tracks = response.Tracks;
+    }
+}
