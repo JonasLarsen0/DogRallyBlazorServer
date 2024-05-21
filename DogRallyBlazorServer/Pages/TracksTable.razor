@@ -4,29 +4,62 @@
 
 @if (Tracks != null)
 {
-    <Card>
-        <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    @foreach (var track in Tracks)
-                    {
-                        <tr class="shadow-lg m-1 employee-row mb-5">
-                            <td class="centered-cell"><img class="round-image" width="60" src="@track.TrackImg" /></td>
-                            <td>
-                                <div class="pt-2">
-                                    <div class="track-place-name centered-subdiv">@track.PlaceName</div>
-                                    <div class="track-class centered-subdiv">@track.Class.GetDisplayName()</div>
-                                </div>
-                            </td>
-                            <td class="centered-cell track">@track.CreatorName</td>
-                            <td class="centered-cell track-date">$@track.Date</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </Card>
+    <div class="card-grid">
+        @foreach (var track in Tracks)
+        {
+            <Card>
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr class="track-row">
+                                <td class="centered-cell">
+                                    <img class="track-image" src="@track.TrackImg" alt="Track Image" />
+                                </td>
+                                <td>
+                                    <div class="pt-2">
+                                        <div class="centered-subdiv">
+                                            <div class="title">Lokation</div>
+                                            <div class="track-place-name">@track.PlaceName</div>
+                                        </div>
+                                        <div class="centered-subdiv">
+                                            <div class="title">Klasse</div>
+                                            <div class="track-class">@track.Class.GetDisplayName()</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="pt-2">
+                                        <div class="centered-subdiv">
+                                            <div class="title">Udgivet den:</div>
+                                            <div class="track-date">@track.Date.ToString("dd/MM/yyyy")</div>
+                                        </div>
+                                        <div class="centered-subdiv">
+                                            <div class="title">Oprettet af:</div>
+                                            <div class="track-creator">@track.CreatorName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+        }
+    </div>
 }
+
+<style>
+    .card-grid {
+        display: grid; /* Using CSS Grid for layout */
+        grid-template-columns: repeat(2, 1fr); /* Two columns with equal width */
+        gap: 1rem; /* Margin between cards */
+    }
+
+    .title {
+        font-weight: bold;
+        margin-bottom: 1px;
+    }
+</style>
 
 @code {
     [Inject] private ITrackService TrackService { get; set; }
