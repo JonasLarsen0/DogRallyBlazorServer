@@ -2,15 +2,30 @@
 @using DogRallyBlazorServer.Services;
 @using DogRallyBlazorServer.Models;
 
-
-
-@if (Tracks != null)
+@if (ShowWarning)
 {
+    <Warning OnClickCallback="DismissWarning" Type=Warning.WarningType.Error Message="@ErrorMessage" />
+}
+@if (Tracks != null)
+{ //Filtre
+    <div class="row">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="filterCreator" placeholder="Ejer navn her" @oninput="FilterTracksByCreator" />
+            <label for="filterCreator">Filtrer på ejer</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="filterClass" placeholder="Klasse her" @oninput="FilterTracksByRallyClass" />
+            <label for="filterClass">Filtrer på klasse</label>
+        </div>
+    </div>
+
     <div class="card-grid">
+        
         @foreach (var track in Tracks)
         {
             <Card>
                 <div class="table-responsive">
+                    
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr class="track-row">
@@ -58,6 +73,7 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between; /* Distribute items evenly */
+
     }
 
     .title {
@@ -67,6 +83,7 @@
     .card {
         flex: 0 0 calc(50% - 0.5rem); /* Adjust width of cards (minus half of desired gap) */
         margin-bottom: 2px; /* Add margin to bottom of cards */
+        margin-top: 1px; /* Add margin to top of cards */
     }
 
     .track-image {
@@ -75,6 +92,12 @@
         object-fit: cover; /* Maintain aspect ratio and crop if necessary */
     }
 
+    .form-floating {
+        width: 150px;
+        margin: 10px;
+    }
+    
+
 </style>
 
 @code {
@@ -82,15 +105,55 @@
     [Inject] private NavigationManager NavigationManager { get; set; }
 
     private List<Track>? Tracks;
+    private List<Track>? TracksBackup;
+
+    private bool ShowWarning = false;
+    private string ErrorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
         var response = await TrackService.GetTracks();
+
+        if (response.StatusCode == 500)
+        {
+            ShowWarning = true;
+            ErrorMessage = response.Message;
+        }
+        else
+        {
+            Tracks = response.Tracks;
+            TracksBackup = Tracks;
+        }
+
         Tracks = response.Tracks;
     }
 
     private void NavigatoToTrackDetail(int trackId)
     {
         NavigationManager.NavigateTo($"/track/{trackId}");
+    }
+
+    private void FilterTracksByCreator(ChangeEventArgs e)
+    {
+        Tracks = TracksBackup;
+        Tracks = Tracks.Where(x => x.CreatorName.IndexOf(e.Value.ToString(), StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+    }
+
+    private void FilterTracksByRallyClass(ChangeEventArgs e)
+    {
+        // Ensure Tracks is reset to TracksBackup before applying the filter
+        Tracks = TracksBackup;
+
+        // Get the filter value as a string
+        string filterValue = e.Value.ToString();
+
+        // Filter Tracks based on the RallyClass display name
+        Tracks = Tracks.Where(x => x.RallyClass.GetDisplayName().IndexOf(filterValue, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+    }
+
+    private void DismissWarning()
+    {
+        ShowWarning = false;
+        NavigationManager.NavigateTo($"identity/account/logout", true);
     }
 }

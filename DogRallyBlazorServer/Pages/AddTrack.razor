@@ -2,23 +2,29 @@
 @using DogRallyBlazorServer.Models;
 @using DogRallyBlazorServer.Services;
 @using DogRallyBlazorServer.Models.DTOs
+@using static DogRallyBlazorServer.Components.Warning
 
-
-<Card>
-    <div class="row user-detail-row">
-        <h3>Tilføj ny bane</h3>
-        <div class="form-group">
-            <EditForm Model="@addTrackForm" OnValidSubmit="AddNewTrack">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+@if (ShowWarning)
+{
+    <Warning OnClickCallback="DismissWarning" Type=@Warning_Type Message="@Warning_Message" />
+}
+else
+{
+    <Card>
+        <div class="row user-detail-row">
+            <h3>Tilføj ny bane</h3>
+            <div class="form-group">
+                <EditForm Model="@addTrackForm" OnValidSubmit="AddNewTrack">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
                     <div class="form-floating mb-3">
-                    <InputText class="form-control" id="floatingInput" placeholder="Image URL here" @bind-Value="addTrackForm.TrackImg" />
+                        <InputText class="form-control" id="floatingInput" placeholder="Image URL here" @bind-Value="addTrackForm.TrackImg" />
                         @* <InputFile class="form-select" id="floatingInput" placeholder="Img here" @bind-Value="addTrackForm.TrackImg" /> *@
                         <label for="floatingInput">Billede URL</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <InputSelect class="form-select" id="floatingInput" placeholder="Rally Klasse" @bind-Value="addTrackForm.RallyClass" >
+                        <InputSelect class="form-select" id="floatingInput" placeholder="Rally Klasse" @bind-Value="addTrackForm.RallyClass">
                             @foreach (RallyClass RallyClass in Enum.GetValues(typeof(RallyClass)))
                             {
                                 <option value="@RallyClass">@RallyClass.GetDisplayName()</option>
@@ -33,30 +39,43 @@
                         <label for="floatingInput">Lokation</label>
                     </div>
 
-                <div class="form-floating mb-3">
-                    <InputText class="form-control" id="floatingInput" placeholder="Creator name here" @bind-Value="addTrackForm.CreatorName" />
-                    <label for="floatingInput">Ejerens navn</label>
-                </div>
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Creator name here" @bind-Value="addTrackForm.CreatorName" />
+                        <label for="floatingInput">Ejerens navn</label>
+                    </div>
 
                     <div class="form-floating mb-3">
                         <InputText class="form-control" id="floatingInput" placeholder="Judge name here" @bind-Value="addTrackForm.JudgeName" />
                         <label for="floatingInput">Dommerens navn</label>
                     </div>
 
-                <button class="btn btn-outline-secondary" type="submit"> Udgiv </button>
-            </EditForm>
+                    <button class="btn btn-outline-secondary" type="submit"> Udgiv </button>
+                </EditForm>
+            </div>
         </div>
-    </div>
-</Card>
+    </Card>
+}
 
 @code {
     [Inject] private ITrackService TrackService { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
+    private bool ShowWarning = false;
+    private string Warning_Message = "";
+    private WarningType Warning_Type;
+
     private AddTrackForm addTrackForm = new();
     private async Task AddNewTrack()
     {
         var response = await TrackService.AddTrack(addTrackForm);
-        NavigationManager.NavigateTo("/");
+        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
+        Warning_Message = response.Message;
+        ShowWarning = true; 
+    }
+
+    private void DismissWarning()
+    {
+        ShowWarning = false;
+        NavigationManager.NavigateTo($"/");
     }
 }
