@@ -10,6 +10,9 @@ public interface ITrackService
 {
     Task<GetAllTracksResponse> GetTracks();
     Task<BaseResponse> AddTrack(AddTrackForm form);
+    Task<GetTrackResponse> GetTrack(int trackId);
+    Task<BaseResponse> DeleteTrack(Track track);
+    Task<BaseResponse> EditTrack(Track track);
 
 }
 public class TrackService : ITrackService
@@ -82,5 +85,93 @@ public class TrackService : ITrackService
 
         return response;
     }
+    
+    public async Task<BaseResponse> DeleteTrack(Track track)
+    {
+        var response = new BaseResponse();
+        try
+        {
+            using (var context = _factory.CreateDbContext())
+            {
+                context.Remove(track);
+                var result = await context.SaveChangesAsync();
+
+                if (result == 1)
+                {
+                    response.StatusCode = 200;
+                    response.Message = "Bane slettet!";
+                }
+                else
+                {
+                    response.StatusCode = 400;
+                    response.Message = "Der opstod et problem med at slette banen";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            response.Message = "Problemer med at slette banen:" + ex.Message;
+        }
+        return response;
+    }
+
+    public async Task<BaseResponse> EditTrack(Track track)
+    {
+        var response = new BaseResponse();
+        try
+        {
+            using (var context = _factory.CreateDbContext())
+            {
+                context.Update(track);
+
+                var result = await context.SaveChangesAsync();
+
+                if (result == 1)
+                {
+                    response.StatusCode = 200;
+                    response.Message = "Track updated successfully";
+                }
+                else
+                {
+                    response.StatusCode = 400;
+                    response.Message = "Error occurred while updating the track.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            response.Message = "Error updating track: " + ex.Message;
+        }
+
+        return response;
+    }
+
+    public async Task<GetTrackResponse> GetTrack(int trackId)
+    {
+        var response = new GetTrackResponse();
+
+        try
+        {
+            using (var context = _factory.CreateDbContext())
+            {
+                var track = await context.Tracks.FirstOrDefaultAsync(x => x.TrackId == trackId);
+                response.StatusCode = 200;
+                response.Message = "Success";
+                response.Track = track;
+            }
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            response.Message = "Problemer med at hente banerne:" + ex.Message;
+            response.Track = null;
+        }
+
+        return response;
+    }
+
+    
 }
 

@@ -1,0 +1,129 @@
+﻿@page "/track/{trackId:int}"
+@using DogRallyBlazorServer.Models.DTOs;
+@using DogRallyBlazorServer.Services;
+@using DogRallyBlazorServer.Models;
+@using static DogRallyBlazorServer.Components.Warning
+
+@if (ShowWarning)
+{
+    <Warning OnClickCallback="DismissWarning" Type=@Warning_Type Message="@Warning_Message" />
+}
+else
+{
+    <Card>
+        <div class="row user-detail-row">
+            <div class="form-group">
+                <EditForm Model="@addTrackForm" OnValidSubmit="EditTrack">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Image URL here" @bind-Value="addTrackForm.TrackImg" />
+                        @* <InputFile class="form-select" id="floatingInput" placeholder="Img here" @bind-Value="addTrackForm.TrackImg" /> *@
+                        <label for="floatingInput">Billede URL</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputSelect class="form-select" id="floatingInput" placeholder="Rally Klasse" @bind-Value="addTrackForm.RallyClass">
+                            @foreach (RallyClass RallyClass in Enum.GetValues(typeof(RallyClass)))
+                            {
+                                <option value="@RallyClass">@RallyClass.GetDisplayName()</option>
+                            }
+                        </InputSelect>
+                        <label for="floatingInput">Rally Klasse</label>
+                    </div>
+
+
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Place name here" @bind-Value="addTrackForm.PlaceName" />
+                        <label for="floatingInput">Lokation</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Creator name here" @bind-Value="addTrackForm.CreatorName" />
+                        <label for="floatingInput">Ejerens navn</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Judge name here" @bind-Value="addTrackForm.JudgeName" />
+                        <label for="floatingInput">Dommerens navn</label>
+                    </div>
+
+                    <button class="btn btn-outline-secondary" type="submit"> Opdater </button>
+                    <div @onclick="ShowWarningBox" class="btn btn-danger" typeof="button"> Slet </div>
+                </EditForm>
+            </div>
+        </div>
+    </Card>
+}
+
+@if (ShowConfirmationBox)
+{
+    <DeleteConfirmationBox>
+        <p>Er du sikker på at du vil slette denne bane?</p>
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-primary me-1" @onclick="@DeleteTrack" type="button">Bekræft</button>
+            <button class="btn btn-danger" @onclick="@CancelDelete" type="button">Annuller</button>
+        </div>
+    </DeleteConfirmationBox>
+}
+
+@code {
+    [Parameter] public int TrackId { get; set; }
+
+    [Inject] private ITrackService TrackService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+
+    private AddTrackForm addTrackForm = new();
+    private bool ShowConfirmationBox = false;
+    private bool ShowWarning = false;
+    private string Warning_Message = "";
+    private WarningType Warning_Type;
+
+    private Track Track;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await TrackService.GetTrack(TrackId);
+        Track = response.Track;
+
+        addTrackForm.TrackImg = Track.TrackImg;
+        addTrackForm.RallyClass = Track.RallyClass;
+        addTrackForm.PlaceName = Track.PlaceName;
+        addTrackForm.CreatorName = Track.CreatorName;
+        addTrackForm.JudgeName = Track.JudgeName;
+
+    }
+
+    private async Task EditTrack()
+    {
+        Track.TrackImg = addTrackForm.TrackImg;
+        Track.RallyClass = addTrackForm.RallyClass;
+        Track.PlaceName = addTrackForm.PlaceName;
+        Track.CreatorName = addTrackForm.CreatorName;
+        Track.JudgeName = addTrackForm.JudgeName;
+
+        var response = await TrackService.EditTrack(Track);
+        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
+        Warning_Message = response.Message;
+        ShowWarning = true;
+    }
+
+    private async Task DeleteTrack()
+    {
+        var response = await TrackService.DeleteTrack(Track);
+        Warning_Type = response.StatusCode == 204 ? WarningType.Success : WarningType.Error;
+        Warning_Message = response.Message;
+        ShowWarning = true;
+        ShowConfirmationBox = false;
+    }
+
+    private void ShowWarningBox() => ShowConfirmationBox = true;
+
+    private void CancelDelete() => ShowConfirmationBox = false;
+
+    private void DismissWarning()
+    {
+        ShowWarning = false;
+        NavigationManager.NavigateTo($"/");
+    }
+}
