@@ -23,7 +23,7 @@
                                         </div>
                                         <div class="centered-subdiv">
                                             <div class="title">Klasse</div>
-                                            <div class="track-class">@track.Class.GetDisplayName()</div>
+                                            <div class="track-rallyClass">@track.RallyClass.GetDisplayName()</div>
                                         </div>
                                     </div>
                                 </td>
@@ -50,15 +50,20 @@
 
 <style>
     .card-grid {
-        display: grid; /* Using CSS Grid for layout */
-        grid-template-columns: repeat(2, 1fr); /* Two columns with equal width */
-        gap: 1rem; /* Margin between cards */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between; /* Distribute items evenly */
     }
 
     .title {
         font-weight: bold;
         margin-bottom: 1px;
     }
+    .card {
+        flex: 0 0 calc(50% - 0.5rem); /* Adjust width of cards (minus half of desired gap) */
+        margin-bottom: 2px; /* Add margin to bottom of cards */
+    }
+
 </style>
 
 @code {

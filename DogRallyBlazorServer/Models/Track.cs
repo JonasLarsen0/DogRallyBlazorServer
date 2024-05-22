@@ -13,11 +13,11 @@ namespace DogRallyBlazorServer.Models
         public string JudgeName { get; set; }
 
         public string TrackImg { get; set; }
-        public Class Class { get; set; }
+        public RallyClass RallyClass { get; set; }
         
     }
 
-    public enum Class
+    public enum RallyClass
     {
         [Display(Name = "Begynder")]
         Begynderklasse,

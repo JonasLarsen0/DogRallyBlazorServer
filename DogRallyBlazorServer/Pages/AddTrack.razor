@@ -1,0 +1,56 @@
+﻿@page "/add-track"
+@using DogRallyBlazorServer.Models;
+@using DogRallyBlazorServer.Services;
+@using DogRallyBlazorServer.Models.DTOs
+
+
+<Card>
+    <div class="row user-detail-row">
+        <h3>Tilføj ny bane</h3>
+        <div class="form-group">
+            <EditForm Model="@addTrackForm" OnValidSubmit="AddNewTrack">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                    <div class="form-floating mb-3">
+                        <InputFile class="form-select" id="floatingInput" placeholder="Img here" @bind-Value="addTrackForm.TrackImg" />
+                        <label for="floatingInput">Bane upload</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputSelect class="form-select" id="floatingInput" placeholder="Rally Klasse" @bind-Value="addTrackForm.RallyClass" >
+                            @foreach (RallyClass RallyClass in Enum.GetValues(typeof(RallyClass)))
+                            {
+                                <option value="@RallyClass">@RallyClass.GetDisplayName()</option>
+                            }
+                        </InputSelect>
+                        <label for="floatingInput">Rally Klasse</label>
+                    </div>
+
+
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Place name here" @bind-Value="addTrackForm.PlaceName" />
+                        <label for="floatingInput">Lokation</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <InputText class="form-control" id="floatingInput" placeholder="Judge name here" @bind-Value="addTrackForm.JudgeName" />
+                        <label for="floatingInput">Dommerens navn</label>
+                    </div>
+
+                <button class="btn btn-outline-secondary" type="submit"> Udgiv </button>
+            </EditForm>
+        </div>
+    </div>
+</Card>
+
+@code {
+    [Inject] private ITrackService TrackService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+
+    private AddTrackForm addTrackForm = new();
+    private async Task AddNewTrack()
+    {
+        var response = await TrackService.AddTrack(addTrackForm);
+        NavigationManager.NavigateTo("/");
+    }
+}

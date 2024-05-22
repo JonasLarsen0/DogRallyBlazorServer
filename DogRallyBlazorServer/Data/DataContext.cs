@@ -32,17 +32,17 @@ namespace DogRallyBlazorServer.Data
                     CreatorName = faker.Name.FullName(),
                     JudgeName = faker.Name.FullName(),
                     TrackImg = faker.Internet.Avatar(),
-                    Class = GetRandomClass()
+                    RallyClass = GetRandomClass()
                 };
                 tracks.Add(track);
             }
             return tracks;
         }
-        private Class GetRandomClass()
+        private RallyClass GetRandomClass()
         {
             var random = new Random();
-            var types = Enum.GetValues(typeof(Class));
-            return (Class)types.GetValue(random.Next(types.Length));
+            var types = Enum.GetValues(typeof(RallyClass));
+            return (RallyClass)types.GetValue(random.Next(types.Length));
         }
         
     }
