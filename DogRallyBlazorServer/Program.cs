@@ -4,12 +4,18 @@ using DogRallyBlazorServer.Data;
 using DogRallyBlazorServer.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//Syncfusion license
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NBaF1cWWhPYVJ1WmFZfVpgcl9DZ1ZRTWYuP1ZhSXxXdkBiXX9YdX1XT2VZU0U=");
+
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddSyncfusionBlazor();
 
 builder.Services.AddScoped<ITrackService, TrackService>();
 
