@@ -1,0 +1,315 @@
+﻿@page "/rallymaker"
+@using Syncfusion.Blazor.Diagram
+@using Syncfusion.Blazor.Diagram.SymbolPalette
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Microsoft.JSInterop
+@using shapes = Syncfusion.Blazor.Diagram.NodeShapes
+@inject IJSRuntime jsRuntime
+
+<SfButton Content="Save" OnClick="SaveDiagram"> </SfButton> 
+<SfButton Content="Load" OnClick="LoadDiagram"> </SfButton>
+
+
+<SfButton Content="Export" OnClick="@Export" />
+<div class="control-section">
+    <div style="display: flex; width: 100%;">
+        <div class="sb-mobile-palette-bar">
+            <div id="palette-icon" style="float: right;" role="button" class="e-ddb-icons1 e-toggle-palette"></div>
+        </div>
+        <div id="palette-space" class="sb-mobile-palette" style="flex: 1; max-width: 40%;">
+            <SfSymbolPaletteComponent @ref="@SymbolPalette" Height="100%" Width="100%"
+                                      Palettes="@Palettes" SymbolHeight="90" SymbolWidth="90" SymbolMargin="@SymbolMargin">
+            </SfSymbolPaletteComponent>
+        </div>
+        <div id="diagram-space" class="sb-mobile-diagram" style="flex: 3;">
+            <div class="content-wrapper" style="border: 1px solid #D7D7D7; height: 100%;">
+
+                <SfDiagramComponent @ref="@diagram" Height="750px" @bind-Connectors="@connectors" @bind-Nodes="@nodes">
+                    <img src="/images/image1.jpg" alt="Transparent Image" style="position:absolute; top:0; left:0; width:100%; height:100%;" />
+                </SfDiagramComponent>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    SymbolMargin SymbolMargin = new SymbolMargin
+        {
+            Left = 0,
+            Right = 0,
+            Top = 0,
+            Bottom = 0
+        };
+    SfDiagramComponent diagram;
+    SfSymbolPaletteComponent SymbolPalette;
+    //Define nodes collection.
+    DiagramObjectCollection<Node> nodes = new DiagramObjectCollection<Node>();
+    //Define connectors collection.
+    DiagramObjectCollection<Connector> connectors = new DiagramObjectCollection<Connector>();
+    //Define palettes collection.
+    DiagramObjectCollection<Palette> Palettes = new DiagramObjectCollection<Palette>();
+    // Defines palette's flow-shape collection.
+    DiagramObjectCollection<NodeBase> PaletteNodes = new DiagramObjectCollection<NodeBase>();
+    // Defines palette's connector collection.
+    DiagramObjectCollection<NodeBase> PaletteConnectors = new DiagramObjectCollection<NodeBase>();
+
+    //testing saving and loading using file stream
+
+    private string fileName;
+    private string ExtensionType = ".json";
+
+
+    //Method to download the diagram
+    // public async Task DownloadDiagram(string fileName)
+    // {
+    //     string data = diagram.SaveDiagram();
+    //     await FileUtil.SaveAs(jsRuntime, data, fileName);
+    // }
+
+
+    public async static Task Click(IJSRuntime js)
+    {
+        await js.InvokeAsync<object>(
+            "click").ConfigureAwait(true);
+    }
+
+    //testing saving and loading using file stream
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        SymbolPalette.Targets = new DiagramObjectCollection<SfDiagramComponent>() { };
+        SymbolPalette.Targets.Add(diagram);
+    }
+
+    protected override void OnInitialized()
+    {
+        InitPaletteModel();
+    }
+    private string data; //To store the diagram data.
+    private void SaveDiagram() //To save the diagram data in string format
+    {
+        data = diagram.SaveDiagram();
+    }
+    private async void LoadDiagram() //To load the diagram data from the string format
+    {
+        await diagram.LoadDiagram(data);
+    }
+
+    private void InitPaletteModel()
+    {
+        CreatePaletteNode(NodeFlowShapes.Terminator, "Terminator");
+        CreatePaletteConnector("Link1", ConnectorSegmentType.Orthogonal, DecoratorShape.Arrow);
+        Palettes = new DiagramObjectCollection<Palette>()
+        {
+            new Palette(){Symbols = PaletteNodes,Title = "Exercise ", ID = "Exercise Elements" },
+            new Palette(){Symbols = PaletteConnectors,Title = "Connectors", IsExpanded = true},
+        };
+    }
+
+    private async Task Export()
+    {
+        DiagramExportSettings export = new DiagramExportSettings();
+        export.Region = DiagramPrintExportRegion.PageSettings;
+        export.PageWidth = 816;
+        export.PageHeight = 1054;
+        //To export the diagram in single page.
+        export.FitToPage = true;
+        export.Margin = new DiagramThickness() { Left = 10, Top = 10, Right = 10, Bottom = 10 };
+        export.ClipBounds = new DiagramRect() { X = 0, Y = 0, Width = 500, Height = 500 };
+        //To export the diagram
+        await diagram.ExportAsync("Diagram", DiagramExportFormat.PNG, export);
+    }
+
+    private void CreatePaletteNode(NodeFlowShapes flowShape, string id)
+    {
+        Node firstNode = new Node()
+            {
+                ID = "node1",
+                //Size of the node.
+                Height = 50,
+                Width = 50,
+                //Position of the node.
+                OffsetX = 100,
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise1.png",
+                    //To stretch the image.
+                    Scale = DiagramScale.Meet,
+                    //To align the image.
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(firstNode);
+
+        Node secondNode = new Node()
+            {
+                ID = "node2",
+                //Size of the node.
+                Height = 50,
+                Width = 50,
+                //Position of the node.
+                OffsetX = 100,
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise1.png",
+                    //To stretch the image.
+                    Scale = DiagramScale.Meet,
+                    //To align the image.
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(secondNode);
+
+        Node thirdNode = new Node()
+            {
+                ID = "node3",
+                Height = 50,
+                Width = 50,
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise2.png",
+                    Scale = DiagramScale.Meet,
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(thirdNode);
+
+        Node fourthNode = new Node()
+            {
+                ID = "node4",
+                Height = 50,
+                Width = 50,
+                OffsetX = 100, 
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise3.png",
+                    Scale = DiagramScale.Meet,
+                    // To align the image.
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(fourthNode);
+
+        Node fifthNode = new Node()
+            {
+                ID = "node5",
+                Height = 50,
+                Width = 50,
+                OffsetX = 100,
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise4.png",
+                    Scale = DiagramScale.Meet,
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(fifthNode);
+
+        Node sixthNode = new Node()
+            {
+                ID = "node6",
+                Height = 50,
+                Width = 50,
+                OffsetX = 100,
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise5.png",
+                    Scale = DiagramScale.Meet,
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(sixthNode);
+
+        Node seventhNode = new Node()
+            {
+                ID = "node7",
+                Height = 50,
+                Width = 50,
+                OffsetX = 600,
+                OffsetY = 100,
+                Shape = new ImageShape()
+                {
+                    Type = NodeShapes.Image,
+                    Source = "/images/exercises/exercise6.png",
+                    Scale = DiagramScale.Meet,
+                    ImageAlign = ImageAlignment.XMinYMax
+                }
+            };
+        PaletteNodes.Add(seventhNode);
+
+    }
+
+
+    private void CreatePaletteConnector(string id, ConnectorSegmentType type, DecoratorShape decoratorShape)
+    {
+        Connector connector = new Connector()
+            {
+                ID = id,
+                Type = type,
+                SourcePoint = new DiagramPoint() { X = 0, Y = 0 },
+                TargetPoint = new DiagramPoint() { X = 60, Y = 60 },
+                Style = new ShapeStyle() { StrokeWidth = 1, StrokeColor = "#757575" },
+                TargetDecorator = new DecoratorSettings()
+                {
+                    Shape = decoratorShape,
+                    Style = new ShapeStyle() { StrokeColor = "#757575", Fill = "#757575" }
+                }
+            };
+        PaletteConnectors.Add(connector);
+
+        Connector connector1 = new Connector
+            {
+                ID = "Link1",
+                Type = type,
+                SourcePoint = new DiagramPoint() { X = 0, Y = 0 },
+                TargetPoint = new DiagramPoint() { X = 60, Y = 60 },
+                TargetDecorator = new DecoratorSettings() { Shape = DecoratorShape.Diamond },
+                Style = new ShapeStyle() { StrokeWidth = 1 }
+            };
+        PaletteConnectors.Add(connector1);
+
+        Connector connector2 = new Connector
+            {
+                ID = "Link2",
+                Type = type,
+                SourcePoint = new DiagramPoint() { X = 0, Y = 0 },
+                TargetPoint = new DiagramPoint() { X = 60, Y = 60 },
+                TargetDecorator = new DecoratorSettings() { Shape = DecoratorShape.OpenArrow },
+                Style = new ShapeStyle() { StrokeWidth = 1 }
+            };
+        PaletteConnectors.Add(connector2);
+
+        Connector connector3 = new Connector
+            {
+                ID = "Link3",
+                Type = ConnectorSegmentType.Bezier,
+                SourcePoint = new DiagramPoint() { X = 0, Y = 0 },
+                TargetPoint = new DiagramPoint() { X = 60, Y = 60 },
+                TargetDecorator = new DecoratorSettings() { Shape = DecoratorShape.None },
+            };
+        PaletteConnectors.Add(connector3 as NodeBase);
+        Palettes = new DiagramObjectCollection<Palette>()
+        {
+            new Palette(){ Symbols = PaletteConnectors, Title = "Connectors", IsExpanded = true },
+        };
+
+        
+        
+    }
+}
