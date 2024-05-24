@@ -191,14 +191,14 @@ else
 
             string path = Path.Combine(
                 config.GetValue<string>("FileStorage")!,
-                "tcorey",
+                "user1",
                 newFileName);
 
-            string relativePath = Path.Combine("tcorey", newFileName);
+            string relativePath = Path.Combine("user1", newFileName);
 
             Directory.CreateDirectory(Path.Combine(
                 config.GetValue<string>("FileStorage")!,
-                "tcorey"));
+                "user1"));
 
             await using FileStream fs = new(path, FileMode.Create);
             await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
