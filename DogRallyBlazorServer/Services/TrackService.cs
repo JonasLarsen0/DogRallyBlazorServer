@@ -38,7 +38,9 @@ public class TrackService : ITrackService
                     JudgeName = form.JudgeName,
                     PlaceName = form.PlaceName,
                     TrackImg = form.TrackImg,
-                    RallyClass = form.RallyClass
+                    RallyClass = form.RallyClass,
+                    FileName = form.FileName
+
                 });
                 var result = await context.SaveChangesAsync();
 

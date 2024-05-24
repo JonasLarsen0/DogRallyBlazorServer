@@ -20,5 +20,7 @@ namespace DogRallyBlazorServer.Models.DTOs
 
         [Required] 
         public RallyClass RallyClass { get; set; }
+        
+        public string? FileName { get; set; }
     }
 }

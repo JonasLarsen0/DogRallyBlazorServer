@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using DogRallyBlazorServer.Services;
 @using DogRallyBlazorServer.Models;
+@inject IConfiguration config
 
 @if (ShowWarning)
 {
@@ -30,7 +31,7 @@
                         <tbody>
                             <tr class="track-row">
                                 <td class="centered-cell">
-                                    <img class="track-image" src="@track.TrackImg" alt="Track Image" />
+                                    <img src="@CreateWebPath(track.FileName)" />
                                 </td>
                                 <td>
                                     <div class="pt-2">
@@ -101,6 +102,16 @@
 </style>
 
 @code {
+
+    //File
+
+    private string CreateWebPath(string relativePath)
+    {
+        return Path.Combine(config.GetValue<string>("WebStorageRoot")!, relativePath);
+
+    }
+
+
     [Inject] private ITrackService TrackService { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
