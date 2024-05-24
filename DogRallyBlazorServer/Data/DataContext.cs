@@ -31,8 +31,9 @@ namespace DogRallyBlazorServer.Data
                     PlaceName = faker.Address.City(),
                     CreatorName = faker.Name.FullName(),
                     JudgeName = faker.Name.FullName(),
-                    TrackImg = faker.Internet.Avatar(),
-                    RallyClass = GetRandomClass()
+                   // TrackImg = faker.Internet.Avatar(),
+                    RallyClass = GetRandomClass(),
+                    FileName = faker.Internet.Avatar()
                 };
                 tracks.Add(track);
             }

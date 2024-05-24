@@ -16,9 +16,11 @@ namespace DogRallyBlazorServer.Models.DTOs
         public string JudgeName { get; set; }
 
 
-        public string TrackImg { get; set; }
+        //public string TrackImg { get; set; }
 
         [Required] 
         public RallyClass RallyClass { get; set; }
+        
+        public string? FileName { get; set; }
     }
 }

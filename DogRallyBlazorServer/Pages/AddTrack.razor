@@ -3,6 +3,7 @@
 @using DogRallyBlazorServer.Services;
 @using DogRallyBlazorServer.Models.DTOs
 @using static DogRallyBlazorServer.Components.Warning
+@inject IConfiguration config
 
 @if (ShowWarning)
 {
@@ -17,11 +18,12 @@ else
                 <EditForm Model="@addTrackForm" OnValidSubmit="AddNewTrack">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
-                    <div class="form-floating mb-3">
+                    
+                    @* <div class="form-floating mb-3">
                         <InputText class="form-control" id="floatingInput" placeholder="Image URL here" @bind-Value="addTrackForm.TrackImg" />
-                        @* <InputFile class="form-select" id="floatingInput" placeholder="Img here" @bind-Value="addTrackForm.TrackImg" /> *@
+                         <InputFile class="form-select" id="floatingInput" placeholder="Img here" @bind-Value="addTrackForm.TrackImg" /> 
                         <label for="floatingInput">Billede URL</label>
-                    </div>
+                    </div> *@
 
                     <div class="form-floating mb-3">
                         <InputSelect class="form-select" id="floatingInput" placeholder="Rally Klasse" @bind-Value="addTrackForm.RallyClass">
@@ -49,14 +51,45 @@ else
                         <label for="floatingInput">Dommerens navn</label>
                     </div>
 
+                    <div class="form-floating mb-3">
+                        <InputFile OnChange="@LoadFiles" class="form-control" accept=".png, .jpeg, .jpg" />
+                        <label for="floatingInput">FileName</label>
+                    </div>
+
+
                     <button class="btn btn-outline-secondary" type="submit"> Udgiv </button>
                 </EditForm>
             </div>
         </div>
     </Card>
 }
+@* file  *@
+@if (errors.Count > 0)
+{
+    <h2>Errors</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
 
 @code {
+    //File
+
+    private long maxFileSize = long.MaxValue; //3MB
+    private List<string> errors = new();
+    private int maxAllowedFiles = 3;
+    private IBrowserFile? file;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+       
+
+    }
     [Inject] private ITrackService TrackService { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
@@ -67,10 +100,27 @@ else
     private AddTrackForm addTrackForm = new();
     private async Task AddNewTrack()
     {
+        //file
+        errors.Clear();
+        try
+        {
+            string relativePath = await CaptureFile();
+            addTrackForm.FileName = relativePath;
+
         var response = await TrackService.AddTrack(addTrackForm);
         Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
         Warning_Message = response.Message;
         ShowWarning = true; 
+
+            //file
+            addTrackForm = new();
+            file = null;
+            errors.Clear();
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error: {ex.Message}");
+        }
     }
 
     private void DismissWarning()
@@ -78,4 +128,40 @@ else
         ShowWarning = false;
         NavigationManager.NavigateTo($"/");
     }
+    private async Task<string> CaptureFile()
+    {
+        if (file is null)
+        {
+            return "";
+        }
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage")!,
+                "user1",
+                newFileName);
+
+            string relativePath = Path.Combine("user1", newFileName);
+
+            Directory.CreateDirectory(Path.Combine(
+                config.GetValue<string>("FileStorage")!,
+                "user1"));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"File: {file.Name} Error: {ex.Message}");
+            throw;
+        }
+    }
+
 }
