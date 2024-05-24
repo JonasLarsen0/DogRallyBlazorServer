@@ -37,7 +37,7 @@ public class TrackService : ITrackService
                     Date = form.Date,
                     JudgeName = form.JudgeName,
                     PlaceName = form.PlaceName,
-                    TrackImg = form.TrackImg,
+                    //TrackImg = form.TrackImg,
                     RallyClass = form.RallyClass,
                     FileName = form.FileName
 

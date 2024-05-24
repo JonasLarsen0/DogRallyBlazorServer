@@ -12,7 +12,7 @@ namespace DogRallyBlazorServer.Models
         public string CreatorName { get; set; }
         public string JudgeName { get; set; }
 
-        public string TrackImg { get; set; }
+       // public string TrackImg { get; set; }
         public RallyClass RallyClass { get; set; }
 
         //file
