@@ -20,7 +20,7 @@ namespace DogRallyBlazorServer.Data
         private List<Track> GetTracks()
         {
             var tracks = new List<Track>();
-            var faker = new Faker("en");
+            var faker = new Faker("en"); //Creating fake data for the database using Bogus nuget package.
 
             for (int i = 1; i < 10; i++)
             {
@@ -31,7 +31,6 @@ namespace DogRallyBlazorServer.Data
                     PlaceName = faker.Address.City(),
                     CreatorName = faker.Name.FullName(),
                     JudgeName = faker.Name.FullName(),
-                   // TrackImg = faker.Internet.Avatar(),
                     RallyClass = GetRandomClass(),
                     FileName = faker.Internet.Avatar()
                 };
@@ -39,7 +38,7 @@ namespace DogRallyBlazorServer.Data
             }
             return tracks;
         }
-        private RallyClass GetRandomClass()
+        private RallyClass GetRandomClass() //Getting random enum value of the RallyClass.
         {
             var random = new Random();
             var types = Enum.GetValues(typeof(RallyClass));

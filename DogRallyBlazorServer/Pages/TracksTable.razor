@@ -3,7 +3,7 @@
 @using DogRallyBlazorServer.Models;
 @inject IConfiguration config
 
-@if (ShowWarning)
+@if (ShowWarning) 
 {
     <Warning OnClickCallback="DismissWarning" Type=Warning.WarningType.Error Message="@ErrorMessage" />
 }
@@ -21,7 +21,6 @@
     </div>
 
     <div class="card-grid">
-        
         @foreach (var track in Tracks)
         {
             <Card>

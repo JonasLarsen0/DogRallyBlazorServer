@@ -5,14 +5,13 @@
 @using Syncfusion.Blazor.Inputs
 @using Syncfusion.Blazor.Buttons
 @using Microsoft.JSInterop
-@using shapes = Syncfusion.Blazor.Diagram.NodeShapes
 @inject IJSRuntime jsRuntime
 
 <SfButton Content="Save" OnClick="SaveDiagram"> </SfButton> 
 <SfButton Content="Load" OnClick="LoadDiagram"> </SfButton>
-
-
 <SfButton Content="Export" OnClick="@Export" />
+
+
 <div class="control-section">
     <div style="display: flex; width: 100%;">
         <div class="sb-mobile-palette-bar">
@@ -33,7 +32,6 @@
         </div>
     </div>
 </div>
-
 
 @code
 {
@@ -57,18 +55,8 @@
     // Defines palette's connector collection.
     DiagramObjectCollection<NodeBase> PaletteConnectors = new DiagramObjectCollection<NodeBase>();
 
-    //testing saving and loading using file stream
-
     private string fileName;
     private string ExtensionType = ".json";
-
-
-    //Method to download the diagram
-    // public async Task DownloadDiagram(string fileName)
-    // {
-    //     string data = diagram.SaveDiagram();
-    //     await FileUtil.SaveAs(jsRuntime, data, fileName);
-    // }
 
 
     public async static Task Click(IJSRuntime js)
@@ -76,8 +64,6 @@
         await js.InvokeAsync<object>(
             "click").ConfigureAwait(true);
     }
-
-    //testing saving and loading using file stream
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -110,17 +96,13 @@
         };
     }
 
-    private async Task Export()
+    private async Task Export() //exporting the diagram
     {
         DiagramExportSettings export = new DiagramExportSettings();
         export.Region = DiagramPrintExportRegion.PageSettings;
         export.PageWidth = 816;
         export.PageHeight = 1054;
-        //To export the diagram in single page.
         export.FitToPage = true;
-        export.Margin = new DiagramThickness() { Left = 10, Top = 10, Right = 10, Bottom = 10 };
-        export.ClipBounds = new DiagramRect() { X = 0, Y = 0, Width = 500, Height = 500 };
-        //To export the diagram
         await diagram.ExportAsync("Diagram", DiagramExportFormat.PNG, export);
     }
 

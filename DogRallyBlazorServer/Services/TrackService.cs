@@ -3,10 +3,11 @@ using DogRallyBlazorServer.Models.Responses;
 using DogRallyBlazorServer.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 using DogRallyBlazorServer.Models;
+using Syncfusion.Blazor;
 
 namespace DogRallyBlazorServer.Services;
 
-public interface ITrackService
+public interface ITrackService 
 {
     Task<GetAllTracksResponse> GetTracks();
     Task<BaseResponse> AddTrack(AddTrackForm form);
@@ -24,7 +25,7 @@ public class TrackService : ITrackService
         _factory = factory;
     }
 
-    public async Task<BaseResponse> AddTrack(AddTrackForm form)
+    public async Task<BaseResponse> AddTrack(AddTrackForm form) // Connecting track to formdata. 
     {
         var response = new BaseResponse();
         try
@@ -37,14 +38,13 @@ public class TrackService : ITrackService
                     Date = form.Date,
                     JudgeName = form.JudgeName,
                     PlaceName = form.PlaceName,
-                    //TrackImg = form.TrackImg,
                     RallyClass = form.RallyClass,
                     FileName = form.FileName
 
                 });
                 var result = await context.SaveChangesAsync();
 
-                if (result == 1)
+                if (result == 1) //User feedback on user action.
                 {
                     response.StatusCode = 200;
                     response.Message = "Bane tilføjet";
@@ -56,7 +56,7 @@ public class TrackService : ITrackService
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) //User feedback on user action.
         {
             response.StatusCode = 500;
             response.Message = "Problemer med at tilføje banen:" + ex.Message;
@@ -64,7 +64,7 @@ public class TrackService : ITrackService
         return response;
     }
 
-    public async Task<GetAllTracksResponse> GetTracks()
+    public async Task<GetAllTracksResponse> GetTracks() //Used to get all tracks from the database. 
     {
         var response = new GetAllTracksResponse();
 
@@ -78,7 +78,7 @@ public class TrackService : ITrackService
                 response.Message = "Success";
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) //Provides user feedback if there is an error.
         {
             response.StatusCode = 500;
             response.Message = "Problemer med at hente banerne:" + ex.Message;
@@ -157,7 +157,7 @@ public class TrackService : ITrackService
         try
         {
             using (var context = _factory.CreateDbContext())
-            {
+            { //Getting the track from the database based on user input.
                 var track = await context.Tracks.FirstOrDefaultAsync(x => x.TrackId == trackId);
                 response.StatusCode = 200;
                 response.Message = "Success";
@@ -170,7 +170,6 @@ public class TrackService : ITrackService
             response.Message = "Problemer med at hente banerne:" + ex.Message;
             response.Track = null;
         }
-
         return response;
     }
 

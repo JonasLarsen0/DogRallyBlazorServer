@@ -18,12 +18,6 @@ else
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    @* <div class="form-floating mb-3">
-                        <InputText class="form-control" id="floatingInput" placeholder="Image URL here" @bind-Value="addTrackForm.TrackImg" />
-                        @* <InputFile class="form-select" id="floatingInput" placeholder="Img here" @bind-Value="addTrackForm.TrackImg" /> 
-                        <label for="floatingInput">Billede URL</label>
-                    </div> *@
-
                     <div class="form-floating mb-3">
                         <InputSelect class="form-select" id="floatingInput" placeholder="Rally Klasse" @bind-Value="addTrackForm.RallyClass">
                             @foreach (RallyClass RallyClass in Enum.GetValues(typeof(RallyClass)))
@@ -88,8 +82,7 @@ else
 
 @code {
     //File
-
-    private long maxFileSize = long.MaxValue; //3MB
+    private long maxFileSize = long.MaxValue; 
     private List<string> errors = new();
     private int maxAllowedFiles = 3;
     private IBrowserFile? file;
@@ -97,8 +90,6 @@ else
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         file = e.File;
-
-
     }
 
     [Parameter] public int TrackId { get; set; }
@@ -119,7 +110,6 @@ else
         var response = await TrackService.GetTrack(TrackId);
         Track = response.Track;
 
-        //addTrackForm.TrackImg = Track.TrackImg;
         addTrackForm.RallyClass = Track.RallyClass;
         addTrackForm.PlaceName = Track.PlaceName;
         addTrackForm.CreatorName = Track.CreatorName;
@@ -135,7 +125,6 @@ else
         {
             string relativePath = await CaptureFile();
             addTrackForm.FileName = relativePath;
-       // Track.TrackImg = addTrackForm.TrackImg;
             Track.RallyClass = addTrackForm.RallyClass;
             Track.PlaceName = addTrackForm.PlaceName;
             Track.CreatorName = addTrackForm.CreatorName;
@@ -182,7 +171,6 @@ else
         {
             return "";
         }
-
         try
         {
             string newFileName = Path.ChangeExtension(

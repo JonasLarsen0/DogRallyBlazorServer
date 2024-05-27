@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using DogRallyBlazorServer.Data;
 using DogRallyBlazorServer.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,17 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 //Syncfusion license
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MzI5MjExN0AzMjM1MmUzMDJlMzBnVDdQdTUxTFo2bHpVeFRwV1M5RC9yM0dVblZwOUlrWjkxeDg1eDhndGZNPQ==");
 
-
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSyncfusionBlazor();
+builder.Services.AddSyncfusionBlazor(); //Syncfusion functionality
 
-builder.Services.AddScoped<ITrackService, TrackService>();
+builder.Services.AddScoped<ITrackService, TrackService>(); //Dependency injection for TrackService 
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); //Creates access to database via the connection string
 builder.Services.AddDbContextFactory<DataContext>(options => options.UseSqlServer(connectionString));
 
+//Identity setting requirements.
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -56,7 +54,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseAuthorization(); //needs t be after UseAuthentication because it relies on the user identity from the authentication process.
+app.UseAuthorization(); //needs to be after UseAuthentication because it relies on the user identity from the authentication process.
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 namespace DogRallyBlazorServer.Models.DTOs
 {
+    //Linked to the database when creating or editing a track. 
     public class AddTrackForm
     {
         [Required]
@@ -14,9 +15,6 @@ namespace DogRallyBlazorServer.Models.DTOs
 
         [Required] 
         public string JudgeName { get; set; }
-
-
-        //public string TrackImg { get; set; }
 
         [Required] 
         public RallyClass RallyClass { get; set; }

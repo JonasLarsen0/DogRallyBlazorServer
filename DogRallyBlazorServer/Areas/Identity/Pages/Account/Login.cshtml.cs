@@ -33,15 +33,14 @@ namespace DogRallyBlazorServer.Areas.Identity.Pages.Account
         }
     }
 
-
     public class InputModel
     {
-        [Required]
+        [Required]  //The Required attribute ensures that the user has to enter a value in the field.
         [EmailAddress]
         public string Email { get; set; }
 
         [Required]
-        [DataType(DataType.Password)]
+        [DataType(DataType.Password)] //The DataType attribute password ensures that it is stored in a encrypted format. 
         public string Password { get; set; }
     }
 
