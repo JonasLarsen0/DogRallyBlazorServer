@@ -9,7 +9,7 @@ using Syncfusion.Blazor;
 var builder = WebApplication.CreateBuilder(args);
 
 //Syncfusion license
-Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NBaF1cWWhPYVJ1WmFZfVpgcl9DZ1ZRTWYuP1ZhSXxXdkBiXX9YdX1XT2VZU0U=");
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MzI5MjExN0AzMjM1MmUzMDJlMzBnVDdQdTUxTFo2bHpVeFRwV1M5RC9yM0dVblZwOUlrWjkxeDg1eDhndGZNPQ==");
 
 
 // Add services to the container.

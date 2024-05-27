@@ -136,10 +136,10 @@ else
             string relativePath = await CaptureFile();
             addTrackForm.FileName = relativePath;
        // Track.TrackImg = addTrackForm.TrackImg;
-        Track.RallyClass = addTrackForm.RallyClass;
-        Track.PlaceName = addTrackForm.PlaceName;
-        Track.CreatorName = addTrackForm.CreatorName;
-        Track.JudgeName = addTrackForm.JudgeName;
+            Track.RallyClass = addTrackForm.RallyClass;
+            Track.PlaceName = addTrackForm.PlaceName;
+            Track.CreatorName = addTrackForm.CreatorName;
+            Track.JudgeName = addTrackForm.JudgeName;
             Track.FileName = addTrackForm.FileName;
 
         var response = await TrackService.EditTrack(Track);
