@@ -7,9 +7,10 @@ Vores projekt er udviklet med henblik på at give hundetrænere en brugervenlig 
 
 Installation:
 1. Klon projekt: https://github.com/JonasLarsen0/DogRallyBlazorServer
-2. Kør projektet
-3. Opret ny bruger
-4. Login med den oprettede bruger
+2. Forbind til UCL VPN
+3. Kør projektet
+4. Opret ny bruger
+5. Login med den oprettede bruger
 - Alternativ: brug den eksisterende bruger: 
 user: TestBruger1@test.dk
 password: Testbruger1
