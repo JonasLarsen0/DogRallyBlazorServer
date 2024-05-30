@@ -27,7 +27,7 @@ namespace DogRallyBlazorServer.Models
         Experienced,
 
         [Display(Name = "Ekspert")]
-        Ekspert,
+        Expert,
 
         [Display(Name = "Champion")]
         Champion,
