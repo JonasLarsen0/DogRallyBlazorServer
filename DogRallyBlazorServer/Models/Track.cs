@@ -21,19 +21,19 @@ namespace DogRallyBlazorServer.Models
     public enum RallyClass
     {
         [Display(Name = "Begynder")]
-        Begynderklasse,
+        Beginner,
 
         [Display(Name = "Øvet")]
-        ØvedeKlasse,
+        Experienced,
 
         [Display(Name = "Ekspert")]
-        Ekspertklasse,
+        Ekspert,
 
         [Display(Name = "Champion")]
-        Championklasse,
+        Champion,
 
         [Display(Name = "Senior")]
-        Seniorklasse
+        Senior
     }
     public static class EnumExtensions
     {
