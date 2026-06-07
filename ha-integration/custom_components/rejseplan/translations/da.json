@@ -1,0 +1,86 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "RejseplanAPI — Opret forbindelse",
+        "description": "Indtast basis-URL'en til din RejseplanAPI-server (f.eks. http://192.168.1.100:8000). Integrationen verificerer forbindelsen, inden du fortsætter.",
+        "data": {
+          "api_url": "API-URL"
+        },
+        "data_description": {
+          "api_url": "Basis-URL inkl. portnummer, uden afsluttende skråstreg"
+        }
+      },
+      "search": {
+        "title": "RejseplanAPI — Find stop",
+        "description": "Skriv en del af stopnavnet for at søge (f.eks. \"Nørreport\", \"Valby\").",
+        "data": {
+          "search_query": "Stopnavn"
+        },
+        "data_description": {
+          "search_query": "Fritekst-søgning — mindst 2 tegn anbefales"
+        }
+      },
+      "configure_route": {
+        "title": "RejseplanAPI — Konfigurer rute",
+        "description": "Vælg det stop, du vil overvåge, filtrer eventuelt på linjenummer eller -bogstav (f.eks. \"2A\", \"S\"), og angiv, hvor mange minutter det tager dig at gå til stoppestedet.",
+        "data": {
+          "stop_id": "Stop",
+          "line_filter": "Linjefilter (valgfrit)",
+          "walk_time": "Gangtid (minutter)"
+        },
+        "data_description": {
+          "stop_id": "Det stop, du vil overvåge",
+          "line_filter": "Lad feltet være tomt for at vise alle linjer på dette stop",
+          "walk_time": "Hvor mange minutter tager det at gå til stoppestedet?"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan ikke oprette forbindelse til RejseplanAPI. Tjek URL'en og sørg for, at serveren kører.",
+      "invalid_url": "URL'en er ikke gyldig. Sørg for, at den starter med http:// eller https://.",
+      "no_stops_found": "Ingen stop fundet for det søgeord. Prøv en anden søgning.",
+      "search_query_empty": "Indtast venligst et søgeord.",
+      "unknown": "En uventet fejl opstod. Se Home Assistant-loggen for detaljer.",
+      "already_configured": "Denne stop/linje-kombination er allerede konfigureret."
+    },
+    "abort": {
+      "already_configured": "Denne stop/linje-kombination er allerede konfigureret."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "RejseplanAPI — Indstillinger",
+        "description": "Opdater, hvor mange minutter det tager dig at gå til stoppestedet. \"Gå nu\"-sensoren tænder, når næste afgang er inden for denne tid.",
+        "data": {
+          "walk_time": "Gangtid (minutter)"
+        },
+        "data_description": {
+          "walk_time": "Minutter fra din dør til stoppestedet"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_departure": {
+        "name": "Næste afgang"
+      },
+      "delay_minutes": {
+        "name": "Forsinkelse"
+      },
+      "minutes_until": {
+        "name": "Minutter til"
+      }
+    },
+    "binary_sensor": {
+      "go_now": {
+        "name": "Gå nu"
+      },
+      "cancelled": {
+        "name": "Aflyst"
+      }
+    }
+  }
+}
