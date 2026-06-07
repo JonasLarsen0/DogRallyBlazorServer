@@ -1,0 +1,86 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "RejseplanAPI — Connect",
+        "description": "Enter the base URL of your RejseplanAPI backend (e.g. http://192.168.1.100:8000). The integration will verify connectivity before continuing.",
+        "data": {
+          "api_url": "API URL"
+        },
+        "data_description": {
+          "api_url": "Base URL including port, without trailing slash"
+        }
+      },
+      "search": {
+        "title": "RejseplanAPI — Find stop",
+        "description": "Type part of the stop name to search (e.g. \"Nørreport\", \"Valby\").",
+        "data": {
+          "search_query": "Stop name"
+        },
+        "data_description": {
+          "search_query": "Free-text search — at least 2 characters recommended"
+        }
+      },
+      "configure_route": {
+        "title": "RejseplanAPI — Configure route",
+        "description": "Select the stop you want to monitor, optionally filter by line number or letter (e.g. \"2A\", \"S\"), and set how many minutes it takes you to walk to the stop.",
+        "data": {
+          "stop_id": "Stop",
+          "line_filter": "Line filter (optional)",
+          "walk_time": "Walk time (minutes)"
+        },
+        "data_description": {
+          "stop_id": "The stop to monitor",
+          "line_filter": "Leave empty to show all lines at this stop",
+          "walk_time": "How many minutes does it take you to walk to the stop?"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the RejseplanAPI. Check the URL and make sure the server is running.",
+      "invalid_url": "The URL is not valid. Make sure it starts with http:// or https://.",
+      "no_stops_found": "No stops found for that search term. Try a different query.",
+      "search_query_empty": "Please enter a search term.",
+      "unknown": "An unexpected error occurred. See the Home Assistant logs for details.",
+      "already_configured": "This stop / line combination is already configured."
+    },
+    "abort": {
+      "already_configured": "This stop / line combination is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "RejseplanAPI — Options",
+        "description": "Update how many minutes it takes you to walk to the stop. The \"Go now\" sensor will turn on when the next departure is within this time.",
+        "data": {
+          "walk_time": "Walk time (minutes)"
+        },
+        "data_description": {
+          "walk_time": "Minutes from your door to the stop"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_departure": {
+        "name": "Next Departure"
+      },
+      "delay_minutes": {
+        "name": "Delay"
+      },
+      "minutes_until": {
+        "name": "Minutes Until"
+      }
+    },
+    "binary_sensor": {
+      "go_now": {
+        "name": "Go Now"
+      },
+      "cancelled": {
+        "name": "Cancelled"
+      }
+    }
+  }
+}
