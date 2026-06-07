@@ -8,21 +8,28 @@
   export let departure: Departure;
   export let walkSeconds: number = 300;
 
-  // Reactive derived values
+  // Reactive derived values (depend on prop changes)
   $: planned     = formatTime(departure.planned_time);
   $: expected    = formatTime(departure.expected_time);
   $: isDelayed   = departure.delay_seconds >= 60;
   $: isCancelled = departure.cancelled;
   $: delayBadge  = formatDelay(departure.delay_seconds);
-  $: goNow       = isGoNow(departure.expected_time, walkSeconds) && !isCancelled;
 
-  // Live countdown — update every second
-  let countdown = formatCountdown(departure.expected_time);
+  // Live countdown + goNow — recalculated every second by the interval.
+  // Also recalculated whenever the `departure` prop changes (Svelte reactive statement).
+  let goNow    = false;
+  let countdown = '';
+
+  function recalc() {
+    countdown = formatCountdown(departure.expected_time);
+    goNow     = isGoNow(departure.expected_time, walkSeconds) && !departure.cancelled;
+  }
+  $: departure, walkSeconds, recalc(); // re-run when props change
+
   let timer: ReturnType<typeof setInterval>;
 
   function updateCountdown() {
-    countdown = formatCountdown(departure.expected_time);
-    goNow = isGoNow(departure.expected_time, walkSeconds) && !departure.cancelled;
+    recalc();
   }
 
   onMount(() => {
