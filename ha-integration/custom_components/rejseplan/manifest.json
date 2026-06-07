@@ -1,0 +1,11 @@
+{
+  "domain": "rejseplan",
+  "name": "RejseplanAPI",
+  "version": "1.0.0",
+  "documentation": "https://github.com/jonaslarsen0/dograllyblazorserver",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@jonaslarsen0"],
+  "iot_class": "local_polling",
+  "config_flow": true
+}
