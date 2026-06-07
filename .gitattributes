@@ -1,0 +1,25 @@
+# Auto-detect text files and normalise line endings to LF in the repository
+* text=auto
+
+# Force LF for shell scripts so they stay executable on Linux/macOS
+*.sh text eol=lf
+
+# Force LF for other source files
+*.py  text eol=lf
+*.js  text eol=lf
+*.ts  text eol=lf
+*.svelte text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+*.md   text eol=lf
+
+# Treat binary files as binary (no newline conversion)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
