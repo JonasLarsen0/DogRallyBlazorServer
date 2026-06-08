@@ -137,6 +137,21 @@ class DelayLogger:
         for dep in board.departures:
             effective = dep.expected_time or dep.planned_time
             tracked = self._tracking.get(dep.journey_id)
+
+            # Always cancel any pending log task for this journey — whether
+            # this is a first appearance or a reappearance after the departure
+            # was removed from _tracking (the disappearance loop pops it).
+            # Without this, a departure removed from _tracking that reappears
+            # would take the `if tracked is None` branch and miss the
+            # cancellation, leading to a spurious DB write.
+            pending = self._log_tasks.pop(dep.journey_id, None)
+            if pending and not pending.done():
+                pending.cancel()
+                logger.debug(
+                    "Cancelled pending log for %s — departure reappeared",
+                    dep.journey_id,
+                )
+
             if tracked is None:
                 self._tracking[dep.journey_id] = _Tracked(
                     journey_id=dep.journey_id,
@@ -155,15 +170,6 @@ class DelayLogger:
                 tracked.last_expected_time = effective
                 tracked.last_delay_minutes = dep.delay_minutes
                 tracked.last_seen_at = now
-                # If a log task was pending (false-positive from a transient
-                # API gap), cancel it — the train is still on the board.
-                pending = self._log_tasks.pop(dep.journey_id, None)
-                if pending and not pending.done():
-                    pending.cancel()
-                    logger.debug(
-                        "Cancelled pending log for %s — departure reappeared",
-                        dep.journey_id,
-                    )
 
         # Detect departures that have vanished from the board
         for journey_id in list(self._tracking):
