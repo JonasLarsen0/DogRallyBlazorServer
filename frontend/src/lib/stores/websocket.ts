@@ -5,13 +5,21 @@ import { readable, writable, derived, get } from 'svelte/store';
 export interface Departure {
   journey_id: string;
   line: string;
-  transport_type: string; // BUS | TRAIN | METRO | S | REG
+  /** Backend field: vehicle_type (BUS | TRAIN | METRO | S | REG).
+   *  Aliased locally as transport_type for component compatibility. */
+  vehicle_type?: string;
+  /** Normalised alias — populated from vehicle_type in the message handler. */
+  transport_type: string;
   direction: string;
   planned_time: string;    // ISO 8601
   expected_time: string;   // ISO 8601
+  /** Backend sends delay_minutes; we convert to delay_seconds on receipt. */
+  delay_minutes?: number;
   delay_seconds: number;
   cancelled: boolean;
   track?: string;
+  /** Seconds until departure (live, from backend). */
+  seconds_until?: number;
   go_now?: boolean;
   stop_name?: string;
 }
@@ -20,7 +28,9 @@ export interface StopDepartures {
   stop_id: string;
   stop_name: string;
   departures: Departure[];
-  fetched_at: string; // ISO 8601
+  /** ISO 8601 timestamp — backend may send as fetched_at or timestamp. */
+  fetched_at?: string;
+  timestamp?: string;
 }
 
 export interface Alert {
@@ -34,9 +44,14 @@ export interface Alert {
 }
 
 export interface WsMessage {
-  type: 'update' | 'alert' | 'ping' | 'error';
+  /** Backend sends "departures_update"; legacy support for "update" kept. */
+  type: 'departures_update' | 'update' | 'alert' | 'ping' | 'error';
   stops?: StopDepartures[];
   alerts?: Alert[];
+  /** Walk time in seconds, sent alongside departures. */
+  walk_seconds?: number;
+  /** Top-level timestamp on the message. */
+  timestamp?: string;
   message?: string;
 }
 
