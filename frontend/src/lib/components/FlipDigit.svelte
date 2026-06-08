@@ -1,111 +1,111 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from 'svelte';
+  /** Single split-flap tile. Accepts `char` (primary) or legacy `digit` prop. */
+  export let char: string = '0';
+  export let digit: string | undefined = undefined;
 
-  /** The character to display: 0-9 or ':' */
-  export let digit: string = '0';
+  // Normalise: `digit` is the legacy prop used by FlipClock
+  $: _char = digit !== undefined ? digit : char;
 
-  let prevDigit = digit;
-  let currentDigit = digit;
-  let flipping = false;
+  let prevChar    = _char;
+  let currentChar = _char;
+  let flipping    = false;
   let flipStage: 'top-fold' | 'bottom-reveal' | 'idle' = 'idle';
-
-  // Staged flip: first the top half folds down, then bottom half of new digit reveals.
-  let pendingDigit: string | null = null;
+  let pendingChar: string | null = null;
 
   function triggerFlip(next: string) {
     if (flipping) {
-      // Queue it – will be picked up after current flip
-      pendingDigit = next;
+      pendingChar = next;
       return;
     }
-    if (next === currentDigit) return;
+    if (next === currentChar) return;
 
-    prevDigit = currentDigit;
-    flipping = true;
+    prevChar  = currentChar;
+    flipping  = true;
     flipStage = 'top-fold';
 
-    // After top half has folded (180ms) switch the digit and reveal bottom half
     setTimeout(() => {
-      currentDigit = next;
-      flipStage = 'bottom-reveal';
+      currentChar = next;
+      flipStage   = 'bottom-reveal';
 
       setTimeout(() => {
-        flipping = false;
+        flipping  = false;
         flipStage = 'idle';
 
-        if (pendingDigit !== null && pendingDigit !== currentDigit) {
-          const p = pendingDigit;
-          pendingDigit = null;
+        if (pendingChar !== null && pendingChar !== currentChar) {
+          const p   = pendingChar;
+          pendingChar = null;
           triggerFlip(p);
         }
       }, 180);
     }, 180);
   }
 
-  $: if (digit !== currentDigit) {
-    triggerFlip(digit);
-  }
+  $: if (_char !== currentChar) triggerFlip(_char);
 </script>
 
 <!--
-  Layout:
-  ┌──────────┐  ← static top half (shows currentDigit top)
-  ├──────────┤  ← centre gap (the physical crease)
-  └──────────┘  ← static bottom half (shows currentDigit bottom)
+  Physical split-flap tile layout:
+  ┌─────────────┐  top half  – shows upper portion of character
+  ══════════════   metallic crease / fold line
+  └─────────────┘  bottom half – shows lower portion of character
 
-  Overlays during flip:
-  • .flip-top   : top half of prevDigit that folds DOWN  (rotateX 0→-90)
-  • .flip-bottom: bottom half of currentDigit that unfolds from 90→0
+  Two animated overlay panels fly during the flip transition.
 -->
-<span class="flip-digit" class:colon={digit === ':'}>
-  <!-- Static card: always shows currentDigit -->
-  <span class="card" aria-hidden="true">
-    <span class="card-top">{currentDigit}</span>
-    <span class="card-bottom">{currentDigit}</span>
+<span
+  class="flip-digit"
+  class:is-colon={_char === ':'}
+  class:is-space={_char === ' ' || _char === '-'}
+  aria-hidden="true"
+>
+  <!-- Static card: always shows currentChar -->
+  <span class="card">
+    <span class="card-top">{currentChar}</span>
+    <span class="card-crease" aria-hidden="true"></span>
+    <span class="card-bottom">{currentChar}</span>
   </span>
 
-  <!-- Animated overlays (only rendered while flipping) -->
+  <!-- Animated overlays (only while flipping) -->
   {#if flipping}
-    <!-- Top overlay: shows prevDigit top half, folds down to -90deg -->
+    <!-- Top overlay: prevChar top half folds downward 0 → -90° -->
     <span
       class="overlay overlay-top"
       class:fold={flipStage === 'top-fold' || flipStage === 'bottom-reveal'}
-      aria-hidden="true"
-    >{prevDigit}</span>
+    >{prevChar}</span>
 
-    <!-- Bottom overlay: shows currentDigit bottom half, unfolds from 90deg to 0 -->
+    <!-- Bottom overlay: currentChar bottom half unfolds 90° → 0 -->
     <span
       class="overlay overlay-bottom"
       class:unfold={flipStage === 'bottom-reveal'}
-      aria-hidden="true"
-    >{currentDigit}</span>
+    >{currentChar}</span>
   {/if}
 </span>
 
 <style>
-  /* ── Container ── */
+  /* ── Tile container ── */
   .flip-digit {
-    --digit-h: 1em;
-    --digit-w: 0.72em;
-    --bg: #0d1220;
-    --text: #e8f0fe;
-    --crease: #000;
-    --shadow: rgba(0, 200, 255, 0.08);
+    --tile-h: 1em;
+    --tile-w: 0.75em;
+    --tile-bg-top:    #161b2e;
+    --tile-bg-bottom: #111625;
+    --tile-text:      #e8f4ff;
+    --tile-crease:    #000000;
+    --tile-shadow:    rgba(0, 212, 255, 0.07);
+    --tile-radius:    3px;
 
     position: relative;
     display: inline-flex;
     flex-direction: column;
-    width: var(--digit-w);
-    height: var(--digit-h);
-    perspective: 400px;
-    perspective-origin: center center;
-    /* Slight gap between digits */
-    margin: 0 1px;
+    width:  var(--tile-w);
+    height: var(--tile-h);
+    perspective: 500px;
+    perspective-origin: center 50%;
+    margin: 0 1.5px;
+    flex-shrink: 0;
   }
 
-  .flip-digit.colon {
-    --digit-w: 0.3em;
-  }
+  /* Narrower slot for colon and space characters */
+  .flip-digit.is-colon { --tile-w: 0.32em; }
+  .flip-digit.is-space  { --tile-w: 0.3em;  }
 
   /* ── Static card ── */
   .card {
@@ -113,49 +113,58 @@
     inset: 0;
     display: flex;
     flex-direction: column;
+    border-radius: var(--tile-radius);
     overflow: hidden;
-    border-radius: 3px;
-    box-shadow: 0 2px 8px var(--shadow);
-    background: var(--bg);
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.7),
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  .card-top,
+  .card-top {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 1px;
+    background: var(--tile-bg-top);
+    color: var(--tile-text);
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    line-height: 1;
+    overflow: hidden;
+    /* Subtle metallic highlight at the top edge */
+    background-image: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.07) 0%,
+      transparent 40%
+    );
+  }
+
+  /* 1 px physical crease line — looks like the split point of a real tile */
+  .card-crease {
+    display: block;
+    height: 1px;
+    background: var(--tile-crease);
+    flex-shrink: 0;
+    /* Metallic sheen at the fold */
+    box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.12);
+  }
+
   .card-bottom {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    color: var(--text);
-    /* Monospace via parent, but enforce here too */
-    font-family: inherit;
-    line-height: 1;
-    width: 100%;
-  }
-
-  .card-top {
-    /* Top half: clip to upper 50% of the digit */
-    align-items: flex-end;
-    padding-bottom: 0;
-    border-bottom: 1px solid var(--crease);
-    background: #111827;
-  }
-
-  .card-bottom {
-    /* Bottom half: clip to lower 50% */
     align-items: flex-start;
-    background: #0d1220;
-  }
-
-  /* Trick: make each half show only its portion of the character
-     by sizing them at 200% height and positioning accordingly */
-  .card-top {
-    height: 50%;
-    min-height: 50%;
-  }
-  .card-bottom {
-    height: 50%;
-    min-height: 50%;
+    justify-content: center;
+    padding-top: 1px;
+    background: var(--tile-bg-bottom);
+    color: var(--tile-text);
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    line-height: 1;
+    overflow: hidden;
   }
 
   /* ── Flip overlays ── */
@@ -168,47 +177,54 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: 3px 3px 0 0;
-    transform-origin: bottom center;
-    backface-visibility: hidden;
-    color: var(--text);
+    color: var(--tile-text);
     font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
     line-height: 1;
-    background: #111827;
-    /* Hardware-accelerated */
     will-change: transform;
+    backface-visibility: hidden;
     z-index: 10;
   }
 
-  /* Top overlay: top half of prevDigit, folds DOWN */
+  /* Top overlay: upper half of prevChar, folds DOWN */
   .overlay-top {
     top: 0;
     align-items: flex-end;
-    border-radius: 3px 3px 0 0;
+    padding-bottom: 1px;
+    background: var(--tile-bg-top);
+    background-image: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.07) 0%,
+      transparent 40%
+    );
+    border-radius: var(--tile-radius) var(--tile-radius) 0 0;
     transform-origin: bottom center;
     transform: rotateX(0deg);
-    transition: transform 180ms cubic-bezier(0.4, 0, 1, 1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-    background: #111827;
-    border-bottom: 1px solid var(--crease);
+    transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--tile-crease);
   }
   .overlay-top.fold {
     transform: rotateX(-90deg);
   }
 
-  /* Bottom overlay: bottom half of currentDigit, unfolds from 90deg → 0 */
+  /* Bottom overlay: lower half of currentChar, unfolds UP (90° → 0) */
   .overlay-bottom {
     top: 50%;
     align-items: flex-start;
-    border-radius: 0 0 3px 3px;
+    padding-top: 1px;
+    background: var(--tile-bg-bottom);
+    border-radius: 0 0 var(--tile-radius) var(--tile-radius);
     transform-origin: top center;
     transform: rotateX(90deg);
     transition: none;
-    background: #0d1220;
   }
   .overlay-bottom.unfold {
     transform: rotateX(0deg);
-    transition: transform 180ms cubic-bezier(0, 0, 0.6, 1);
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.4);
+    transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.5);
   }
 </style>

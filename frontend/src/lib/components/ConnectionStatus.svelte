@@ -5,88 +5,130 @@
 
   export let status: Status = 'disconnected';
 
-  // Derive status from the shared store unless a prop override is given
   let internalStatus: Status;
-  $: {
-    internalStatus = $connected ? 'connected' : 'reconnecting';
-  }
-  $: displayStatus = status !== 'disconnected' ? status : internalStatus;
+  $: internalStatus = $connected ? 'connected' : 'reconnecting';
+  $: displayStatus  = status !== 'disconnected' ? status : internalStatus;
 
   const LABELS: Record<Status, string> = {
-    connected:    'Tilsluttet',
+    connected:    'Live',
     reconnecting: 'Forbinder…',
     disconnected: 'Afbrudt',
   };
 </script>
 
-<span class="connection-status status-{displayStatus}" role="status" aria-live="polite">
-  <span class="dot" aria-hidden="true"></span>
+<span
+  class="status status-{displayStatus}"
+  role="status"
+  aria-live="polite"
+  title="{{ connected: 'Tilsluttet til server', reconnecting: 'Forsøger at genoprette forbindelsen', disconnected: 'Forbindelsen er afbrudt' }[displayStatus]}"
+>
+  <span class="indicator" aria-hidden="true">
+    {#if displayStatus === 'disconnected'}
+      <span class="x-mark">✕</span>
+    {:else}
+      <span class="dot"></span>
+    {/if}
+  </span>
   <span class="label">{LABELS[displayStatus]}</span>
 </span>
 
 <style>
-  .connection-status {
+  .status {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    padding: 0.3rem 0.7rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.28rem 0.65rem;
     border-radius: 20px;
     border: 1px solid transparent;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    transition: all 0.35s ease;
     user-select: none;
+    font-family: system-ui, sans-serif;
+    text-transform: uppercase;
   }
 
-  /* ── Connected ── */
+  /* ── Connected — green heartbeat ── */
   .status-connected {
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.25);
+    color: var(--accent-green);
+    background: rgba(0, 230, 118, 0.08);
+    border-color: rgba(0, 230, 118, 0.2);
   }
   .status-connected .dot {
-    background: #22c55e;
-    box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+    background: var(--accent-green);
+    box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.6);
+    animation: heartbeat 2s ease-out infinite;
   }
 
-  /* ── Reconnecting ── */
+  @keyframes heartbeat {
+    0%   { box-shadow: 0 0 0 0   rgba(0, 230, 118, 0.7); }
+    40%  { box-shadow: 0 0 0 5px rgba(0, 230, 118, 0);   }
+    100% { box-shadow: 0 0 0 0   rgba(0, 230, 118, 0);   }
+  }
+
+  /* ── Reconnecting — amber spinning ring ── */
   .status-reconnecting {
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.25);
+    color: var(--accent-amber);
+    background: rgba(255, 184, 0, 0.07);
+    border-color: rgba(255, 184, 0, 0.2);
   }
   .status-reconnecting .dot {
-    background: #f59e0b;
-    animation: spin-ring 1s linear infinite;
-    border-radius: 50%;
-    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+    width: 9px !important;
+    height: 9px !important;
+    background: transparent !important;
+    border: 2px solid var(--accent-amber);
+    border-top-color: transparent;
+    animation: spin-ring 0.8s linear infinite;
   }
 
-  /* ── Disconnected ── */
+  @keyframes spin-ring {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Disconnected — red X with shake ── */
   .status-disconnected {
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.1);
-    border-color: rgba(220, 38, 38, 0.25);
-  }
-  .status-disconnected .dot {
-    background: #dc2626;
-    box-shadow: 0 0 6px rgba(220, 38, 38, 0.6);
+    color: var(--accent-red);
+    background: rgba(255, 59, 92, 0.08);
+    border-color: rgba(255, 59, 92, 0.2);
+    animation: shake 0.5s ease 0s 1;
   }
 
-  /* ── Dot base ── */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-3px); }
+    40%      { transform: translateX(3px); }
+    60%      { transform: translateX(-2px); }
+    80%      { transform: translateX(2px); }
+  }
+
+  .x-mark {
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: var(--accent-red);
+    line-height: 1;
+  }
+
+  /* ── Shared dot base ── */
   .dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
+    display: block;
   }
 
-  /* Reconnecting spinner: fake spin via box-shadow */
-  @keyframes spin-ring {
-    0%   { box-shadow: 2px 0 6px rgba(245, 158, 11, 0.8), -2px 0 0 rgba(245,158,11,0); }
-    50%  { box-shadow: -2px 0 6px rgba(245, 158, 11, 0.8), 2px 0 0 rgba(245,158,11,0); }
-    100% { box-shadow: 2px 0 6px rgba(245, 158, 11, 0.8), -2px 0 0 rgba(245,158,11,0); }
+  .indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+  }
+
+  .label {
+    font-size: 0.68rem;
   }
 </style>
