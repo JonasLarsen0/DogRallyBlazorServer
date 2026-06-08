@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # Walk time used for go_now computation (seconds)
     walk_time_seconds: int = 300
 
+    # When True, only train departures are shown (IC, RE, S-tog etc. — no bus/metro/ferry)
+    train_only: bool = False
+
     @field_validator("poll_interval_seconds")
     @classmethod
     def _min_poll_interval(cls, v: int) -> int:

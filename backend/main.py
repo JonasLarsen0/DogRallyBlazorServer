@@ -48,7 +48,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Starting RejseplanAPI backend …")
 
     # --- Initialise shared singletons ---
-    client = RejseplaneClient(api_key=settings.rejseplanen_api_key)
+    client = RejseplaneClient(
+        api_key=settings.rejseplanen_api_key,
+        train_only=settings.train_only,
+    )
     manager = ConnectionManager()
     poller = DeparturePoller(client=client, manager=manager)
 

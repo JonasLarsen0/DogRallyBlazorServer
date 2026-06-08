@@ -25,6 +25,22 @@ _DK_TZ = ZoneInfo("Europe/Copenhagen")
 _BASE_URL = "https://xmlopen.rejseplanen.dk/bin/rest.exe"
 _COMMON_PARAMS: dict[str, str] = {"format": "json", "usePuR": "1"}
 
+# Vehicle type values that count as "train" in Rejseplanen responses
+_TRAIN_TYPES: frozenset[str] = frozenset(
+    {"IC", "ICE", "LYN", "RE", "REG", "TOG", "S", "RSX", "EC", "EN"}
+)
+
+# API params to suppress non-train departures server-side
+_TRAIN_ONLY_PARAMS: dict[str, str] = {
+    "useBus": "0",
+    "useMetro": "0",
+    "useFerry": "0",
+    "useTog": "1",
+    "useSTog": "1",
+    "useIC": "1",
+    "useICE": "1",
+}
+
 
 def _parse_dk_datetime(date_str: str, time_str: str) -> datetime:
     """
@@ -69,17 +85,20 @@ class RejseplaneClient(httpx.AsyncClient):
             stops = await client.search_stops("Nørreport")
     """
 
-    def __init__(self, api_key: str, **kwargs: Any) -> None:
+    def __init__(self, api_key: str, train_only: bool = False, **kwargs: Any) -> None:
         super().__init__(
             base_url=_BASE_URL,
             timeout=httpx.Timeout(15.0),
             **kwargs,
         )
         self._api_key = api_key
+        self._train_only = train_only
 
     def _params(self, extra: dict[str, Any] | None = None) -> dict[str, Any]:
         """Build query params dict with mandatory keys pre-filled."""
         p: dict[str, Any] = {"accessId": self._api_key, **_COMMON_PARAMS}
+        if self._train_only:
+            p.update(_TRAIN_ONLY_PARAMS)
         if extra:
             p.update(extra)
         return p
@@ -367,6 +386,8 @@ class RejseplaneClient(httpx.AsyncClient):
         for dep in raw_deps:
             try:
                 departure = self._parse_single_departure(dep, stop_id)
+                if self._train_only and departure.vehicle_type.upper() not in _TRAIN_TYPES:
+                    continue
                 departures.append(departure)
             except Exception as exc:  # noqa: BLE001
                 logger.debug("Skipping unparseable departure: %s — %s", dep, exc)
