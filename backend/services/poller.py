@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -21,7 +22,7 @@ from backend.config import settings
 from backend.models.departure import Alert, StopDepartures
 from backend.services.delay_logger import DelayLogger
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("poller")
 
 
 def _serialize_departures(
@@ -93,6 +94,11 @@ class DeparturePoller:
 
         # Latest snapshot — served to newly connected WS clients
         self._last_payload: dict[str, Any] | None = None
+
+        # Poll statistics — exposed via /api/health
+        self.polls_completed: int = 0
+        self.last_poll_at: datetime | None = None
+        self.last_poll_error: str | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -183,6 +189,7 @@ class DeparturePoller:
             "DeparturePoller: polling %d stop(s) …", len(self._stop_ids)
         )
 
+        t_start = time.monotonic()
         try:
             all_stops, alerts = await asyncio.gather(
                 self._client.get_multi_departures(self._stop_ids),
@@ -190,8 +197,11 @@ class DeparturePoller:
                 return_exceptions=False,
             )
         except Exception as exc:  # noqa: BLE001
-            logger.error("DeparturePoller: poll failed — %s", exc)
+            self.last_poll_error = str(exc)
+            logger.error("poll failed — %s", exc)
             return
+
+        duration = time.monotonic() - t_start
 
         # Feed each board into the delay logger BEFORE broadcasting.
         # The logger tracks disappearing departures and schedules log writes.
@@ -206,7 +216,20 @@ class DeparturePoller:
         self._last_payload = payload
 
         await self._manager.broadcast_departures(payload)
-        logger.debug(
-            "DeparturePoller: broadcast complete — %d client(s)",
+
+        # Update poll statistics
+        self.polls_completed += 1
+        self.last_poll_at = datetime.now(tz=timezone.utc)
+        self.last_poll_error = None
+
+        total_departures = sum(
+            len(s.departures) for s in all_stops  # type: ignore[union-attr]
+        )
+        logger.info(
+            "poll complete — stops=%d, departures=%d, alerts=%d, duration=%.2fs, clients=%d",
+            len(self._stop_ids),
+            total_departures,
+            len(alerts),  # type: ignore[arg-type]
+            duration,
             self._manager.connection_count,
         )
