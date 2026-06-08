@@ -13,7 +13,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -79,7 +79,7 @@ class _RejseplanSensorBase(CoordinatorEntity[RejseplanCoordinator], SensorEntity
             name=f"Rejseplan {stop_name}" + (f" {line_filter}" if line_filter else ""),
             manufacturer="Rejseplanen",
             model="RejseplanAPI",
-            entry_type=None,
+            entry_type=DeviceEntryType.SERVICE,
         )
 
         # Build a human-readable entity name prefix used by HA
@@ -90,7 +90,8 @@ class NextDepartureSensor(_RejseplanSensorBase):
     """Sensor showing the ISO datetime of the next departure."""
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_state_class = SensorStateClass.MEASUREMENT  # HA recommends MEASUREMENT for live timestamps
+    # TIMESTAMP device class must NOT have a state_class set (HA 2024.x requirement)
+    _attr_state_class = None
 
     def __init__(
         self,

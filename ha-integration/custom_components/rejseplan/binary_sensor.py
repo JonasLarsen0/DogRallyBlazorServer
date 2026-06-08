@@ -9,7 +9,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -74,7 +74,7 @@ class _RejseplanBinarySensorBase(
             name=f"Rejseplan {stop_name}" + (f" {line_filter}" if line_filter else ""),
             manufacturer="Rejseplanen",
             model="RejseplanAPI",
-            entry_type=None,
+            entry_type=DeviceEntryType.SERVICE,
         )
 
 

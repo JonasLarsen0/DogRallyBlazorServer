@@ -9,8 +9,8 @@
   const MAX_ROWS = 12;
 
   $: departures = stopDepartures?.departures?.slice(0, MAX_ROWS) ?? [];
-  $: fetchedAt  = stopDepartures?.fetched_at
-    ? formatTime(stopDepartures.fetched_at)
+  $: fetchedAt  = stopDepartures?.fetched_at ?? stopDepartures?.timestamp
+    ? formatTime((stopDepartures?.fetched_at ?? stopDepartures?.timestamp) as string)
     : null;
 </script>
 

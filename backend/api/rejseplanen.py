@@ -218,8 +218,12 @@ class RejseplaneClient(httpx.AsyncClient):
 
         fetched_at = datetime.now(tz=timezone.utc)
 
-        # Build URL with repeated id params manually because httpx merges dicts.
-        base_params = f"accessId={self._api_key}&format=json&usePuR=1"
+        # Build URL with repeated id params manually because httpx merges dicts
+        # and would deduplicate the repeated &id= parameters.
+        base_params_dict = {"accessId": self._api_key, "format": "json", "usePuR": "1"}
+        if self._train_only:
+            base_params_dict.update(_TRAIN_ONLY_PARAMS)
+        base_params = "&".join(f"{k}={v}" for k, v in base_params_dict.items())
         id_params = "&".join(f"id={sid}" for sid in stop_ids)
         url = f"/multiDepartureBoard?{base_params}&{id_params}"
 

@@ -174,10 +174,25 @@ class DelayLogger:
 
             tracked = self._tracking.pop(journey_id)
 
-            # Guard: only treat as genuinely departed if expected time is
-            # plausibly in the past (not just scrolled out of top-20 results).
-            cutoff = now - timedelta(hours=_MAX_LOOKBACK_HOURS)
-            if tracked.last_expected_time < cutoff:
+            # Guard 1: if the expected time is still in the future (more than a
+            # small grace window), the departure hasn't left yet — it most
+            # likely just scrolled out of the 20-result board window.
+            # We use a 5-minute grace period to avoid boundary races.
+            future_cutoff = now + timedelta(minutes=5)
+            if tracked.last_expected_time > future_cutoff:
+                logger.debug(
+                    "Departure %s ignored — expected time still in the future (%s),"
+                    " likely scrolled out of board window",
+                    journey_id,
+                    tracked.last_expected_time.isoformat(),
+                )
+                continue
+
+            # Guard 2: if the expected time is more than _MAX_LOOKBACK_HOURS in
+            # the past, the data is stale and we can no longer reliably
+            # attribute it to a real delay event.
+            past_cutoff = now - timedelta(hours=_MAX_LOOKBACK_HOURS)
+            if tracked.last_expected_time < past_cutoff:
                 logger.debug(
                     "Departure %s ignored — expected time too old (%s)",
                     journey_id,
@@ -295,7 +310,7 @@ class DelayLogger:
             if tier is None:
                 return  # delay dropped below threshold while we waited
 
-            await asyncio.get_event_loop().run_in_executor(
+            await asyncio.get_running_loop().run_in_executor(
                 None, self._write_sync, tracked, tier
             )
         except asyncio.CancelledError:

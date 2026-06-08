@@ -75,7 +75,7 @@ class RejseplanCoordinator(DataUpdateCoordinator[RejseplanDepartureData]):
                     raise UpdateFailed(
                         f"API returned HTTP {resp.status} for stop {self.stop_id}"
                     )
-                payload: list[dict[str, Any]] = await resp.json()
+                payload: dict[str, Any] = await resp.json()
         except aiohttp.ClientError as err:
             _LOGGER.warning(
                 "Connection error fetching departures for stop %s: %s",
@@ -87,7 +87,11 @@ class RejseplanCoordinator(DataUpdateCoordinator[RejseplanDepartureData]):
                 return self.data
             raise UpdateFailed(f"Cannot reach RejseplanAPI: {err}") from err
 
-        return self._parse(payload)
+        # API returns {"stop_id": ..., "departures": [...], ...}
+        departures: list[dict[str, Any]] = (
+            payload.get("departures", []) if isinstance(payload, dict) else payload
+        )
+        return self._parse(departures)
 
     def _parse(self, departures: list[dict[str, Any]]) -> RejseplanDepartureData:
         """Find the first relevant, non-cancelled departure and build data object."""

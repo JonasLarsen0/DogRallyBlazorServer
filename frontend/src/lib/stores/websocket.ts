@@ -124,9 +124,27 @@ function connect() {
       return;
     }
 
-    if (msg.type === 'update' && msg.stops) {
-      departures.set(msg.stops);
+    // Accept both "departures_update" (current backend) and legacy "update"
+    if ((msg.type === 'departures_update' || msg.type === 'update') && msg.stops) {
+      // Normalise per-departure fields so components use a consistent shape
+      const normalised = msg.stops.map((stop) => ({
+        ...stop,
+        // Prefer fetched_at, fall back to message-level timestamp
+        fetched_at: stop.fetched_at ?? stop.timestamp ?? msg.timestamp,
+        departures: stop.departures.map((dep) => ({
+          ...dep,
+          // Normalise vehicle_type → transport_type
+          transport_type: dep.transport_type ?? dep.vehicle_type ?? 'BUS',
+          // Normalise delay_minutes → delay_seconds
+          delay_seconds: dep.delay_seconds ?? (dep.delay_minutes != null ? dep.delay_minutes * 60 : 0),
+        })),
+      }));
+      departures.set(normalised);
       lastUpdated.set(new Date());
+    }
+    // Backend may bundle alerts in the same departures_update message
+    if (msg.alerts && msg.alerts.length > 0) {
+      alerts.set(msg.alerts);
     }
     if (msg.type === 'alert' && msg.alerts) {
       alerts.set(msg.alerts);
