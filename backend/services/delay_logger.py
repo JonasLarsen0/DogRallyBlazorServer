@@ -5,18 +5,25 @@ Algorithm
 ---------
 1. On every poll, we receive a fresh StopDepartures board.
 2. We maintain a dict of "tracked" departures keyed by journey_id.
-3. When a departure appears, we upsert its latest delay into the tracker.
+3. When a departure appears/updates, we upsert its latest delay into the tracker.
+   If a pending log task exists for that journey_id (false-positive guard),
+   we cancel it — the train is still there.
 4. When a departure disappears from the board we check whether its expected
    departure time is plausibly in the past (i.e. the train actually departed,
    not just scrolled out of the 20-result window).  If so we schedule a log
-   task for ``last_expected_time + 5 minutes``.
+   task after a short confirmation wait.
 5. At log time we write to SQLite if delay >= 30 minutes.
 
-Why +5 minutes?
----------------
-Rejseplanen clears a departure from the board shortly after the train leaves.
-Waiting 5 minutes past the last known expected departure time ensures we
-capture the final delay figure rather than an intermediate estimate.
+Timing rationale
+----------------
+Rejseplanen removes a departure from the board when the train actually
+departs.  Historical delay data is then available for roughly 30 minutes
+before it is cleared.  We therefore:
+
+  • Trigger on disappearance from the board (the train has left).
+  • Wait CONFIRMATION_SECONDS (90 s = 3 poll cycles) before writing.
+    This cancels any task if the departure reappears (transient API gap).
+  • 90 s is well within the ~30-minute Rejseplanen history window.
 """
 
 from __future__ import annotations
@@ -43,6 +50,11 @@ TIERS = (30, 60, 90)
 # this window of the past.  Trains more than 3 hours in the future that
 # vanish have merely scrolled out of the 20-result window.
 _MAX_LOOKBACK_HOURS = 3
+
+# Wait this many seconds after detecting disappearance before writing to DB.
+# 3 poll cycles — long enough to cancel on a false-positive reappearance,
+# short enough to stay well within Rejseplanen's ~30-minute history window.
+_CONFIRMATION_SECONDS = 90.0
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS delay_logs (
@@ -143,6 +155,15 @@ class DelayLogger:
                 tracked.last_expected_time = effective
                 tracked.last_delay_minutes = dep.delay_minutes
                 tracked.last_seen_at = now
+                # If a log task was pending (false-positive from a transient
+                # API gap), cancel it — the train is still on the board.
+                pending = self._log_tasks.pop(dep.journey_id, None)
+                if pending and not pending.done():
+                    pending.cancel()
+                    logger.debug(
+                        "Cancelled pending log for %s — departure reappeared",
+                        dep.journey_id,
+                    )
 
         # Detect departures that have vanished from the board
         for journey_id in list(self._tracking):
@@ -173,21 +194,20 @@ class DelayLogger:
                 )
                 continue
 
-            # Schedule the log 5 minutes after the last known expected time
-            log_at = tracked.last_expected_time + timedelta(minutes=5)
-            wait_seconds = max(0.0, (log_at - now).total_seconds())
-
+            # Departure has left the board — schedule a confirmation write.
+            # 90 s = 3 poll cycles: enough to catch a reappearance (transient
+            # API gap) while staying within Rejseplanen's ~30-min history window.
             task = asyncio.create_task(
-                self._delayed_write(tracked, wait_seconds),
+                self._delayed_write(tracked, _CONFIRMATION_SECONDS),
                 name=f"delay_log_{journey_id}",
             )
             self._log_tasks[journey_id] = task
             logger.info(
-                "Scheduled delay log for %s %s (delay=%d min) in %.0f s",
+                "Departure gone — logging %s %s (delay=%d min) in %.0f s",
                 tracked.line,
                 tracked.direction,
                 tracked.last_delay_minutes,
-                wait_seconds,
+                _CONFIRMATION_SECONDS,
             )
 
     async def close(self) -> None:
