@@ -57,13 +57,13 @@ describe('formatCountdown', () => {
     expect(formatCountdown(t)).toBe('2 min');
   });
 
-  it('returns absolute time (HH:MM) when departure is ≥ 60 minutes away', () => {
-    // 61 minutes from now in ISO — result should be a time string like "13:01"
+  it('returns absolute time (HH:MM or HH.MM) when departure is ≥ 60 minutes away', () => {
+    // 61 minutes from now in ISO — result should be a time string like "13:01" or "13.01" (da-DK)
     const farFuture = new Date(FIXED_NOW + 61 * 60_000).toISOString();
     const result = formatCountdown(farFuture);
-    // Should NOT contain "min" and should look like a time
+    // Should NOT contain "min" and should look like a time (colon or period separator)
     expect(result).not.toContain('min');
-    expect(result).toMatch(/^\d{2}:\d{2}$/);
+    expect(result).toMatch(/^\d{2}[:.]\d{2}$/);
   });
 });
 
@@ -114,12 +114,13 @@ describe('formatTime', () => {
     expect(formatTime('not-a-date')).toBe('--:--');
   });
 
-  it('formats a valid ISO datetime to HH:MM (da-DK locale)', () => {
-    // Using a UTC timestamp; result depends on local offset, so just check shape
+  it('formats a valid ISO datetime to HH:MM or HH.MM (da-DK locale)', () => {
+    // Using a UTC timestamp; result depends on local offset, so just check shape.
+    // da-DK may use "." as separator (e.g. "09.30") on some runtimes.
     const iso = '2024-06-01T09:30:00.000Z';
     const result = formatTime(iso);
-    // Should match HH:MM pattern
-    expect(result).toMatch(/^\d{2}:\d{2}$/);
+    // Should match HH:MM or HH.MM pattern
+    expect(result).toMatch(/^\d{2}[:.]\d{2}$/);
   });
 });
 

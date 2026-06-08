@@ -1,4 +1,4 @@
-import { readable, writable, derived, get } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 
 // ── Type definitions ──────────────────────────────────────────────────────────
 

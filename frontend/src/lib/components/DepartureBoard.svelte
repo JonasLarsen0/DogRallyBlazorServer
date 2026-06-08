@@ -9,9 +9,11 @@
   const MAX_ROWS = 12;
 
   $: departures = stopDepartures?.departures?.slice(0, MAX_ROWS) ?? [];
-  $: fetchedAt  = stopDepartures?.fetched_at ?? stopDepartures?.timestamp
-    ? formatTime((stopDepartures?.fetched_at ?? stopDepartures?.timestamp) as string)
-    : null;
+  function getFetchedAt(s: StopDepartures | null): string | null {
+    const ts = s?.fetched_at ?? s?.timestamp ?? null;
+    return ts ? formatTime(ts) : null;
+  }
+  $: fetchedAt = getFetchedAt(stopDepartures);
 </script>
 
 <section class="board" aria-label="Afgangstavle for {stopDepartures?.stop_name ?? 'stop'}">
