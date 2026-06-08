@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # When True, only train departures are shown (IC, RE, S-tog etc. — no bus/metro/ferry)
     train_only: bool = False
 
+    # Path to the SQLite file used by the delay logger (inside the container)
+    delay_log_path: str = "/app/data/delay_log.db"
+
     @field_validator("poll_interval_seconds")
     @classmethod
     def _min_poll_interval(cls, v: int) -> int:

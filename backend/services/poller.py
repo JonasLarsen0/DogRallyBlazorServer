@@ -19,6 +19,7 @@ from backend.api.rejseplanen import RejseplaneClient
 from backend.api.websocket import ConnectionManager
 from backend.config import settings
 from backend.models.departure import Alert, StopDepartures
+from backend.services.delay_logger import DelayLogger
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +80,11 @@ class DeparturePoller:
         self,
         client: RejseplaneClient,
         manager: ConnectionManager,
+        delay_logger: DelayLogger,
     ) -> None:
         self._client = client
         self._manager = manager
+        self._delay_logger = delay_logger
         self._task: asyncio.Task[None] | None = None
 
         # Mutable runtime state
@@ -189,6 +192,11 @@ class DeparturePoller:
         except Exception as exc:  # noqa: BLE001
             logger.error("DeparturePoller: poll failed — %s", exc)
             return
+
+        # Feed each board into the delay logger BEFORE broadcasting.
+        # The logger tracks disappearing departures and schedules log writes.
+        for board in all_stops:  # type: ignore[union-attr]
+            self._delay_logger.process_board(board)
 
         payload = _serialize_departures(
             all_stops,  # type: ignore[arg-type]

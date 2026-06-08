@@ -6,6 +6,8 @@ services:
     env_file: .env
     expose:
       - "8000"
+    volumes:
+      - delay_data:/app/data
     networks:
       - rejseplan-net
     restart: unless-stopped
@@ -42,3 +44,6 @@ services:
 networks:
   rejseplan-net:
     driver: bridge
+
+volumes:
+  delay_data:

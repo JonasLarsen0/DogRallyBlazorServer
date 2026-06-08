@@ -19,10 +19,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.rejseplanen import RejseplaneClient
-from backend.api.routes import alerts, config, departures, stops
+from backend.api.routes import alerts, config, delays, departures, stops
 from backend.api.websocket import ConnectionManager
 from backend.api.websocket_route import router as ws_router
 from backend.config import settings
+from backend.services.delay_logger import DelayLogger
 from backend.services.poller import DeparturePoller
 
 # ---------------------------------------------------------------------------
@@ -53,11 +54,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         train_only=settings.train_only,
     )
     manager = ConnectionManager()
-    poller = DeparturePoller(client=client, manager=manager)
+    delay_logger = DelayLogger(db_path=settings.delay_log_path)
+    poller = DeparturePoller(client=client, manager=manager, delay_logger=delay_logger)
 
     # Attach to app.state so routes and WebSocket handlers can reach them.
     app.state.rejseplanen_client = client
     app.state.connection_manager = manager
+    app.state.delay_logger = delay_logger
     app.state.poller = poller
 
     # --- Start background polling ---
@@ -85,6 +88,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # --- Shutdown ---
     logger.info("Shutting down RejseplanAPI backend …")
     await poller.stop()
+    await delay_logger.close()
     await client.aclose()
     logger.info("Shutdown complete")
 
@@ -122,6 +126,7 @@ def create_app() -> FastAPI:
     app.include_router(departures.router)
     app.include_router(alerts.router)
     app.include_router(config.router)
+    app.include_router(delays.router)
 
     # --- WebSocket ---
     app.include_router(ws_router)
